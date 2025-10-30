@@ -114,7 +114,7 @@ ConsecutiveConnection_Successful.exe
 
 The code has been made platform-independent:
 - Windows-specific headers (`windows.h`) are conditionally included
-- Wide character strings use SQLWCHAR arrays for cross-platform compatibility
+- String types and ODBC functions adapt based on platform (SQLWCHAR for Windows, SQLCHAR for Linux)
 - ODBC API calls use standard ODBC 3.x functions available on all platforms
 
 ## License
