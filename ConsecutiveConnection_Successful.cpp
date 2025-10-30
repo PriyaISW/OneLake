@@ -1,7 +1,23 @@
+#ifdef _WIN32
 #include <windows.h>
+#endif
 #include <sql.h>
 #include <sqlext.h>
 #include <iostream>
+#include <cstring>
+
+// Define platform-specific string types and functions
+#ifdef _WIN32
+#define CONN_STR_TYPE SQLWCHAR
+#define CONN_STR(str) L##str
+#define SQL_DRIVER_CONNECT_FUNC SQLDriverConnectW
+#define SQL_TABLES_FUNC SQLTablesW
+#else
+#define CONN_STR_TYPE SQLCHAR
+#define CONN_STR(str) (SQLCHAR*)str
+#define SQL_DRIVER_CONNECT_FUNC SQLDriverConnect
+#define SQL_TABLES_FUNC SQLTables
+#endif
 
 void checkRet(SQLRETURN ret, const char* msg) {
     if (ret != SQL_SUCCESS && ret != SQL_SUCCESS_WITH_INFO) {
@@ -17,7 +33,7 @@ void runMetadataQuery(SQLHDBC dbc) {
     ret = SQLAllocHandle(SQL_HANDLE_STMT, dbc, &stmt);
     checkRet(ret, "AllocHandle STMT");
 
-    ret = SQLTables(stmt, NULL, 0, NULL, 0, NULL, 0, (SQLWCHAR*)L"TABLE", SQL_NTS);
+    ret = SQL_TABLES_FUNC(stmt, NULL, 0, NULL, 0, NULL, 0, CONN_STR("TABLE"), SQL_NTS);
     checkRet(ret, "SQLTables");
 
     SQLCHAR tableName[256];
@@ -29,7 +45,7 @@ void runMetadataQuery(SQLHDBC dbc) {
     SQLFreeHandle(SQL_HANDLE_STMT, stmt);
 }
 
-// Simulate a “full disconnect”
+// Simulate a ï¿½full disconnectï¿½
 void fullDisconnect(SQLHENV& env, SQLHDBC& dbc) {
     if (dbc) {
         SQLRETURN ret = SQLDisconnect(dbc);
@@ -56,7 +72,7 @@ int main() {
     std::cout << "=== ODBC Full Disconnect Test ===" << std::endl;
     std::cin.get();
 
-    const wchar_t* connStr = L"DSN=Simba Onelake DSN;";
+    CONN_STR_TYPE* connStr = CONN_STR("DSN=Simba Onelake DSN;");
 
     SQLHENV env = nullptr;
     SQLHDBC dbc = nullptr;
@@ -73,7 +89,7 @@ int main() {
     checkRet(ret, "Alloc DBC (1)");
 
     std::cout << "[INFO] Connecting first time..." << std::endl;
-    ret = SQLDriverConnect(dbc, NULL, (SQLWCHAR*)connStr, SQL_NTS, NULL, 0, NULL, SQL_DRIVER_COMPLETE);
+    ret = SQL_DRIVER_CONNECT_FUNC(dbc, NULL, connStr, SQL_NTS, NULL, 0, NULL, SQL_DRIVER_COMPLETE);
     checkRet(ret, "DriverConnect (1)");
 
     runMetadataQuery(dbc);
@@ -92,7 +108,7 @@ int main() {
     ret = SQLAllocHandle(SQL_HANDLE_DBC, env, &dbc);
     checkRet(ret, "Alloc DBC (2)");
 
-    ret = SQLDriverConnect(dbc, NULL, (SQLWCHAR*)connStr, SQL_NTS, NULL, 0, NULL, SQL_DRIVER_COMPLETE);
+    ret = SQL_DRIVER_CONNECT_FUNC(dbc, NULL, connStr, SQL_NTS, NULL, 0, NULL, SQL_DRIVER_COMPLETE);
     checkRet(ret, "DriverConnect (2)");
 
     runMetadataQuery(dbc);

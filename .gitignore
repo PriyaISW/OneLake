@@ -1,0 +1,24 @@
+# Compiled executables
+ConsecutiveConnection_Issue
+ConsecutiveConnection_Successful
+
+# Object files
+*.o
+*.obj
+
+# Compiled libraries
+*.a
+*.so
+*.dylib
+*.dll
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
